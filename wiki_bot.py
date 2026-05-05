@@ -7,53 +7,55 @@ from selenium.webdriver.chrome.service import Service
 from webdriver_manager.chrome import ChromeDriverManager
 
 try:
-    # browser start with auto-managed ChromeDriver
+    # 1. Browser Setup
     service = Service(ChromeDriverManager().install())
     driver = webdriver.Chrome(service=service)
+    driver.maximize_window()
 
-    # open Wikipedia
-    driver.get("https://en.wikipedia.org")
-
-    # wait setup
+    # 2. Open Wikipedia
+    driver.get("https://wikipedia.org")
     wait = WebDriverWait(driver, 15)
 
-    # search box wait until clickable (current Wikipedia selector)
-    search = wait.until(EC.element_to_be_clickable((By.ID, "searchInput")))
-
-    # search and enter (clear + click to fix interactability)
+    # 3. Search Box - (Aapke diye gaye HTML ke mutabiq Name selector use kiya hai)
+    search = wait.until(EC.element_to_be_clickable((By.NAME, "search")))
+    
     search.clear()
     search.click()
-    search.send_keys("Python programming")
+    search.send_keys("Python (programming language)")
     search.send_keys(Keys.RETURN)
 
-    # wait for article page load
-    wait.until(EC.any_of(
-        EC.presence_of_element_located((By.CSS_SELECTOR, "h1 span.mw-headline")), 
-        EC.url_contains("Python_(programming_language)")
-    ))
+    # 4. Wait for Page Load - Article ki main heading ka wait
+    wait.until(EC.presence_of_element_located((By.ID, "firstHeading")))
 
-    # relevant headings filter
+    # 5. Headings Extract aur Filter karein
     all_headings = driver.find_elements(By.TAG_NAME, "h2")
-    headings = [h for h in all_headings if h.text and h.text.strip() and len(h.text.strip()) > 3 and "Contents" not in h.text]
+    # Faltu headings (jaise "Contents") ko nikalne ke liye filter
+    headings = [h.text.strip() for h in all_headings if h.text.strip() and "Contents" not in h.text]
 
-    # intro paragraphs
-    paragraphs = driver.find_elements(By.CSS_SELECTOR, ".mw-parser-output > p")[:10]
+    # 6. Intro Paragraphs
+    paragraphs = driver.find_elements(By.CSS_SELECTOR, ".mw-parser-output > p")[:5]
 
-    # console output
-    print("Relevant H2 Headings from Python (programming language):")
+    # 7. Console Output
+    print("\n--- Found Headings ---")
     for heading in headings:
-        print(f"- {heading.text}")
+        print(f"-> {heading}")
 
-    # save to file
+    # 8. Save to File (\n fix kar diya gaya hai)
     with open("python_wikipedia.txt", "w", encoding="utf-8") as file:
-        file.write("Headings:\\n")
-        for heading in headings:
-            file.write(heading.text + "\\n\\n")
-        file.write("Intro Paragraphs:\\n")
+        file.write("WIKIPEDIA HEADINGS:\n")
+        for h in headings:
+            file.write(f"- {h}\n")
+        
+        file.write("\nINTRO PARAGRAPHS:\n")
         for p in paragraphs:
-            file.write(p.text + "\\n\\n")
+            if p.text.strip():
+                file.write(f"{p.text}\n\n")
 
-    print("Data saved to python_wikipedia.txt")
+    print("\n[Success] Data 'python_wikipedia.txt' mein save ho gaya hai.")
+
+except Exception as e:
+    print(f"[Error] Kuch masla hua hai: {e}")
+
 finally:
     driver.quit()
-    print("Browser closed successfully.")
+    print("Browser closed.")
