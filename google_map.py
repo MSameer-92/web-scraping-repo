@@ -59,7 +59,7 @@ def parse_place_text(text: str) -> dict:
 
 driver = webdriver.Chrome()
 wait = WebDriverWait(driver, 15)
-all_restaurants = []
+all_item_type = []
 
 try:
     full_query = f"{SEARCH_QUERY} in {location}"
@@ -80,21 +80,21 @@ try:
         print("----scrolled down----")
 
         listings = driver.find_elements(By.CSS_SELECTOR, "div[role='article']")
-        print(f"Found {len(listings)} restaurants so far...")
+        print(f"Found {len(listings)} items so far...")
 
         for place in listings:
             try:
                 name = place.get_attribute("aria-label") or "N/A"
                 parsed = parse_place_text(place.text)
 
-                all_restaurants.append(
+                all_item_type.append(
                     {
                         "Name": name,
                         **parsed,
                     }
                 )
             except Exception as e:
-                print(f"Error occurred while parsing restaurant: {e}")
+                print(f"Error occurred while parsing item: {e}")
                 continue
 
 except Exception as e:
@@ -105,13 +105,13 @@ finally:
 
 # Build dataframe + dedupe
 
-df = pd.DataFrame(all_restaurants)
+df = pd.DataFrame(all_item_type)
 if not df.empty:
     df = df.drop_duplicates(subset=["Name"])
 
     df.to_csv(OUTPUT_FILE, index=False, encoding="utf-8")
-    print(f"\n✅ {len(df)} restaurants saved → {OUTPUT_FILE}")
+    print(f"\n✅ {len(df)} your result saved → {OUTPUT_FILE}")
     print(df.head())
 else:
-    print("No restaurants extracted.")
+    print("No result extracted.")
 
