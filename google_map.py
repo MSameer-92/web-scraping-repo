@@ -6,8 +6,9 @@ import pandas as pd
 import time
 import re
 
-SEARCH_QUERY = "restaurants in Johar Town Lahore"
-OUTPUT_FILE = "google_maps_restaurants.csv"
+SEARCH_QUERY = input("Enter the bussiness type : ")
+location = input("Enter the location :")
+OUTPUT_FILE = f"{SEARCH_QUERY}_{location}_search_results.csv"
 
 
 def parse_place_text(text: str) -> dict:
@@ -61,7 +62,9 @@ wait = WebDriverWait(driver, 15)
 all_restaurants = []
 
 try:
-    url = f"https://www.google.com/maps/search/{SEARCH_QUERY.replace(' ', '+')}"
+    full_query = f"{SEARCH_QUERY} in {location}"
+    url = f"https://www.google.com/maps/search/{full_query.replace(' ', '+')}"
+    #url = f"https://www.google.com/maps/search/{SEARCH_QUERY}+in+{location}"
     driver.get(url)
     print(f"Searching for '{SEARCH_QUERY}' on Google Maps...")
 
